@@ -32,14 +32,18 @@ jobs:
           echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --info 2>&1 | tail -100
 
-      - name: Find APK path
-        run: find . -name "*.apk" -type f
+      - name: Find and copy APK
+        run: |
+          find . -name "*.apk" -type f -exec echo "Found: {}" \;
+          mkdir -p /tmp/apks
+          find . -name "*.apk" -type f -exec cp {} /tmp/apks/ \;
+          ls -la /tmp/apks/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SojibTv-APK
-          path: "**/*.apk"
-          if-no-files-found: warn
+          path: /tmp/apks/
+          if-no-files-found: error
