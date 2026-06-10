@@ -32,18 +32,17 @@ jobs:
           echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --info 2>&1 | tail -100
+        run: gradle assembleDebug --no-daemon
 
-      - name: Find and copy APK
+      - name: Find APK
+        run: find . -name "*.apk" -type f
+
+      - name: Create Release and Upload APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          find . -name "*.apk" -type f -exec echo "Found: {}" \;
-          mkdir -p /tmp/apks
-          find . -name "*.apk" -type f -exec cp {} /tmp/apks/ \;
-          ls -la /tmp/apks/
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: SojibTv-APK
-          path: /tmp/apks/
-          if-no-files-found: error
+          APK=$(find . -name "*.apk" -type f | head -1)
+          echo "APK found: $APK"
+          gh release delete v1.0 --yes 2>/dev/null || true
+          gh release create v1.0 "$APK" --title "Sojib Tv APK" --notes "Sojib Tv Android App" --repo ${{ github.repository }}
+          echo "✅ Release created!"
