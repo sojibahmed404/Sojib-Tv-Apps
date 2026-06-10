@@ -31,20 +31,23 @@ jobs:
           unzip -q gradle-8.4-bin.zip -d $HOME
           echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
 
-      - name: Find project directory and build
+      - name: Show directory structure
         run: |
-          if [ -f "SojibTv/build.gradle" ]; then
-            cd SojibTv
-          fi
-          gradle assembleDebug --no-daemon --stacktrace
+          echo "=== Root ==="
+          ls -la
+          echo "=== App ==="
+          ls -la app/ || echo "no app dir"
 
-      - name: Find APK files
+      - name: Build APK
+        run: |
+          gradle assembleDebug --no-daemon -p . 2>&1
+
+      - name: Find APK
         run: find . -name "*.apk" 2>/dev/null
 
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SojibTv-APK
-          path: |
-            **/outputs/apk/**/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
