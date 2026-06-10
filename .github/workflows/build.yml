@@ -32,17 +32,20 @@ jobs:
           echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: |
+          gradle --version
+          gradle assembleDebug --no-daemon --info 2>&1 | tail -80
 
-      - name: Find APK
-        run: find . -name "*.apk" -type f
+      - name: Find and Upload APK
+        run: |
+          find . -name "*.apk" -type f
+          APK=$(find . -name "*.apk" -type f | head -1)
+          echo "APK=$APK" >> $GITHUB_ENV
 
-      - name: Create Release and Upload APK
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          APK=$(find . -name "*.apk" -type f | head -1)
-          echo "APK found: $APK"
           gh release delete v1.0 --yes 2>/dev/null || true
-          gh release create v1.0 "$APK" --title "Sojib Tv APK" --notes "Sojib Tv Android App" --repo ${{ github.repository }}
-          echo "✅ Release created!"
+          gh release create v1.0 "$APK"             --title "Sojib Tv v1.0"             --notes "Sojib Tv App - WebView APK"
+          echo "🎉 APK uploaded to Release!"
